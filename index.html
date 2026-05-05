@@ -859,6 +859,10 @@ async function initFirebase() {
   const q = query(collection(db, "expedients"));
   onSnapshot(q, (snapshot) => {
     expedients = snapshot.docs.map(d => d.data());
+    // Migrar tipus antics si cal
+    expedients.forEach(e => {
+      if (e.tipus === "SDA Material") e.tipus = "SDA Material laboratori";
+    });
     // Ordenar per data de creació (més recent primer)
     expedients.sort((a, b) => (b.data || "").localeCompare(a.data || ""));
     renderSidebar();
