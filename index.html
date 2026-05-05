@@ -861,7 +861,22 @@ async function initFirebase() {
     expedients = snapshot.docs.map(d => d.data());
     // Migrar tipus antics si cal
     expedients.forEach(e => {
+      // Corregir "SDA Material" → "SDA Material laboratori"
       if (e.tipus === "SDA Material") e.tipus = "SDA Material laboratori";
+
+      // Si no té tipus (expedients antics), deduir-lo de la fase de les tasques
+      if (!e.tipus && e.tasques && e.tasques.length > 0) {
+        const primeraFase = e.tasques.find(t => t.fase);
+        if (primeraFase) {
+          const fase = primeraFase.fase.toUpperCase();
+          if (fase.includes("LICITACIÓ") || fase.includes("LICITACIO")) e.tipus = "Licitació";
+          else if (fase.includes("SDA MATERIAL")) e.tipus = "SDA Material laboratori";
+          else if (fase.includes("SDA FORMACIÓ") || fase.includes("SDA FORMACIO")) e.tipus = "SDA Formació";
+          else if (fase.includes("PRÒRROGA") || fase.includes("PRORROGA")) e.tipus = "Pròrroga";
+          else if (fase.includes("MODIFICACIÓ") || fase.includes("MODIFICACIO")) e.tipus = "Modificació";
+          else e.tipus = "Altres";
+        }
+      }
     });
     // Ordenar per data de creació (més recent primer)
     expedients.sort((a, b) => (b.data || "").localeCompare(a.data || ""));
